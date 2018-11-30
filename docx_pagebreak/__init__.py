@@ -16,11 +16,11 @@ class DocxPagebreak(object):
     pagebreak = pf.RawBlock("<w:p><w:r><w:br w:type=\"page\" /></w:r></w:p>", format="openxml")
     sectionbreak = pf.RawBlock("<w:p><w:pPr><w:sectPr><w:type w:val=\"nextPage\" /></w:sectPr></w:pPr></w:p>",
                                format="openxml")
-    toc = pf.RawBlock(r"""
+    toc = r"""
 <w:sdt>
 <w:sdtPr>
   <w:docPartObj>
-    <w:docPartGallery w:val="Table of Contents" />
+    <w:docPartGallery w:val="{}" />
   </w:docPartObj>
 </w:sdtPr>
 <w:sdtContent xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -29,7 +29,7 @@ class DocxPagebreak(object):
       <w:pStyle w:val="TOCHeading" />
     </w:pPr>
     <w:r>
-      <w:t xml:space="preserve">Table of Contents</w:t>
+      <w:t xml:space="preserve">{}</w:t>
     </w:r>
   </w:p>
   <w:p>
@@ -42,9 +42,10 @@ class DocxPagebreak(object):
   </w:p>
 </w:sdtContent>
 </w:sdt>
-""", format="openxml")
+"""
 
     def action(self, elem, doc):
+        toctitle = doc.get_metadata('toc-title', "Table of Contents")
         if isinstance(elem, pf.RawBlock):
             if elem.text == r"\newpage":
                 if (doc.format == "docx"):
@@ -59,7 +60,7 @@ class DocxPagebreak(object):
             elif elem.text == r"\toc":
                 if (doc.format == "docx"):
                     pf.debug("Table of Contents")
-                    elem = self.toc
+                    elem = pf.RawBlock(self.toc.format(toctitle,toctitle),format="openxml")
                 else:
                     elem = []
         return elem
